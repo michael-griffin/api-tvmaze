@@ -71,7 +71,8 @@ function displayShows(shows) {
        </div>
       `);
     //Could add event listeners to each button, do this within loop
-    $('.Show').on('click', getEpisodesOfShow)
+    //previously used getEpisodesOfShow
+    $('.Show').on('click', getEpisodesAndDisplay)
     $showsList.append($show);
   }
 
@@ -103,6 +104,14 @@ $searchForm.on("submit", async function handleSearchForm(evt) {
  *      { id, name, season, number }
  */
 
+async function getEpisodesAndDisplay(evt){
+  //console.log('getEpisodesAndDisplay called');
+  $showsList.hide();
+  $episodesArea.show();
+  let episodes = await getEpisodesOfShow(evt);
+  displayEpisodes(episodes);
+}
+
 async function getEpisodesOfShow(evt) {
   const id = evt.currentTarget.dataset.showId
   //make fetch call to
@@ -110,18 +119,31 @@ async function getEpisodesOfShow(evt) {
   let episodesURL = `${BASE_URL}/shows/${id}/episodes`;
   const response = await fetch(episodesURL);
   const result = await response.json();
-  const formattedEpisode = result.map(item => {
-    return { 
+  const formattedEpisodes = result.map(item => {
+    return {
       name : item.name,
       number : item.number,
       season : item.season
     }
   })
-  return formattedEpisode;
+  return formattedEpisodes;
 }
 //<li>Pilot (season 1, number 1)</li>
 /** Write a clear docstring for this function... */
 
-// function displayEpisodes(episodes) { }
+function displayEpisodes(episodes) {
+  console.log('episodes are:', episodes);
+  let liContainer = $('#episodesList');
+  //liContainer.css('display', 'block');
+
+  for (let episode of episodes){
+    let liElement = $(`<li>
+    ${episode.name} Season: ${episode.season} Number: ${episode.number}
+    </li>`);
+    liContainer.append(liElement);
+  }
+
+}
 
 // add other functions that will be useful / match our structure & design
+$episodesArea.hide();
