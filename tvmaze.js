@@ -3,7 +3,7 @@
 const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
-
+const BASE_URL = 'http://api.tvmaze.com';
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -12,8 +12,12 @@ const $searchForm = $("#searchForm");
  *    (if no image URL given by API, put in a default image URL)
  */
 
-async function getShowsByTerm( /* term */) {
+async function getShowsByTerm(searchTerm) {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
+  const params = new URLSearchParams({q : searchTerm});
+  const response = await fetch(`${BASE_URL}/search/shows?${params}`);
+  const result = await response.json();
+  console.log(result);
 
   return [
     {
