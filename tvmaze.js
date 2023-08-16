@@ -1,10 +1,11 @@
 "use strict";
 
 const $showsList = $("#showsList");
+const $episodesList = $("#episodesList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
-const BASE_URL = 'http://api.tvmaze.com';
-const MISSING_URL = 'https://tinyurl.com/tv-missing';
+const BASE_URL = "http://api.tvmaze.com";
+const MISSING_URL = "https://tinyurl.com/tv-missing";
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -13,34 +14,26 @@ const MISSING_URL = 'https://tinyurl.com/tv-missing';
  *    (if no image URL given by API, put in a default image URL)
  */
 
-
-//TODO: get show.id passed to handleEpisodes function properly
-//build displayEpisodes
 async function getShowsByTerm(searchTerm) {
-  // ADD: Remove placeholder & make request to TVMaze search shows API.
   const params = new URLSearchParams({ q: searchTerm });
   const response = await fetch(`${BASE_URL}/search/shows?${params}`);
   const result = await response.json();
-  //console.log(result);
 
-  let formattedShows = result.map(item => {
+  let formattedShows = result.map((item) => {
     let show = item.show;
     let { id, name, summary, image } = show;
     let formattedShow = {
       id,
       name,
       summary,
-      image
+      image,
     };
-    let displayedImage = (show.image) ? show.image.medium : MISSING_URL;
+    let displayedImage = show.image ? show.image.medium : MISSING_URL;
     formattedShow.image = displayedImage;
     return formattedShow;
   });
-  //console.log(formatted);
   return formattedShows;
-
 }
-
 
 /** Given list of shows, create markup for each and append to DOM.
  *
@@ -52,7 +45,6 @@ function displayShows(shows) {
 
   //May need to modify below to add in a button
   for (const show of shows) {
-
     const $show = $(`
         <div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
@@ -70,15 +62,11 @@ function displayShows(shows) {
          </div>
        </div>
       `);
-    //Could add event listeners to each button, do this within loop
-    //previously used getEpisodesOfShow
-    $('.Show').on('click', getEpisodesAndDisplay)
     $showsList.append($show);
   }
 
-  //"http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
+  $(".Show").on("click", ".Show-getEpisodes", getEpisodesAndDisplay);
 }
-
 
 /** Handle search form submission: get shows from API and display.
  *    Hide episodes area (that only gets shown if they ask for episodes)
@@ -97,53 +85,53 @@ $searchForm.on("submit", async function handleSearchForm(evt) {
   await searchShowsAndDisplay();
 });
 
+/**
+ * Called on click to episodes button.
+ *    Shows episode area, gets episodes by show id and displays them.
+ * @param {*} evt
+ */
 
-
+async function getEpisodesAndDisplay(evt) {
+  $episodesList.empty();
+  const id = evt.delegateTarget.dataset.showId;
+  $episodesArea.show();
+  let episodes = await getEpisodesOfShow(id);
+  displayEpisodes(episodes);
+}
 
 /** Given a show ID, get from API and return (promise) array of episodes:
  *      { id, name, season, number }
  */
 
-async function getEpisodesAndDisplay(evt){
-  //console.log('getEpisodesAndDisplay called');
-  $showsList.hide();
-  $episodesArea.show();
-  let episodes = await getEpisodesOfShow(evt);
-  displayEpisodes(episodes);
-}
-
-async function getEpisodesOfShow(evt) {
-  const id = evt.currentTarget.dataset.showId
+async function getEpisodesOfShow(id) {
   //make fetch call to
   //http://api.tvmaze.com/shows/[showid]/episodes
   let episodesURL = `${BASE_URL}/shows/${id}/episodes`;
   const response = await fetch(episodesURL);
   const result = await response.json();
-  const formattedEpisodes = result.map(item => {
+  const formattedEpisodes = result.map((item) => {
     return {
-      name : item.name,
-      number : item.number,
-      season : item.season
-    }
-  })
+      name: item.name,
+      number: item.number,
+      season: item.season,
+    };
+  });
   return formattedEpisodes;
 }
-//<li>Pilot (season 1, number 1)</li>
-/** Write a clear docstring for this function... */
 
+/**
+ * Accepts list of episodes, and appends each item to episode list.
+ * @param {*} episodes
+ */
 function displayEpisodes(episodes) {
-  console.log('episodes are:', episodes);
-  let liContainer = $('#episodesList');
-  //liContainer.css('display', 'block');
+  let liContainer = $("#episodesList");
 
-  for (let episode of episodes){
+  for (let episode of episodes) {
     let liElement = $(`<li>
     ${episode.name} Season: ${episode.season} Number: ${episode.number}
     </li>`);
     liContainer.append(liElement);
   }
-
 }
 
-// add other functions that will be useful / match our structure & design
 $episodesArea.hide();
