@@ -4,6 +4,7 @@ const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 const BASE_URL = 'http://api.tvmaze.com';
+const MISSING_URL = 'https://tinyurl.com/tv-missing';
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -31,29 +32,13 @@ async function getShowsByTerm(searchTerm) {
       summary,
       image
     };
+    let displayedImage = (show.image) ? show.image.medium : MISSING_URL;
+    formattedShow.image = displayedImage;
     return formattedShow;
   });
   //console.log(formatted);
   return formattedShows;
 
-  /*   [
-      {
-        id: 1767,
-        name: "The Bletchley Circle",
-        summary:
-          `<p><b>The Bletchley Circle</b> follows the journey of four ordinary
-             women with extraordinary skills that helped to end World War II.</p>
-           <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their
-             normal lives, modestly setting aside the part they played in
-             producing crucial intelligence, which helped the Allies to victory
-             and shortened the war. When Susan discovers a hidden code behind an
-             unsolved murder she is met by skepticism from the police. She
-             quickly realises she can only begin to crack the murders and bring
-             the culprit to justice with her former friends.</p>`,
-        image:
-            "http://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
-      }
-    ] */
 }
 
 
@@ -64,19 +49,16 @@ async function getShowsByTerm(searchTerm) {
 
 function displayShows(shows) {
   $showsList.empty();
-  const missingImage = 'https://tinyurl.com/tv-missing';
-
 
   //May need to modify below to add in a button
   for (const show of shows) {
-    let displayedImage = (show.image) ? show.image.medium : missingImage;
 
     const $show = $(`
         <div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src=${displayedImage}
-              alt="Bletchly Circle San Francisco"
+              src=${show.image}
+              alt="${show.name}"
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -89,9 +71,7 @@ function displayShows(shows) {
        </div>
       `);
     //Could add event listeners to each button, do this within loop
-    $('.Show-getEpisodes').on('click', () => {
-      getEpisodesOfShow(show.id);
-    });
+    $('.Show').on('click', getEpisodesOfShow)
     $showsList.append($show);
   }
 
@@ -123,16 +103,23 @@ $searchForm.on("submit", async function handleSearchForm(evt) {
  *      { id, name, season, number }
  */
 
-async function getEpisodesOfShow(id) {
-
+async function getEpisodesOfShow(evt) {
+  const id = evt.currentTarget.dataset.showId
   //make fetch call to
   //http://api.tvmaze.com/shows/[showid]/episodes
   let episodesURL = `${BASE_URL}/shows/${id}/episodes`;
   const response = await fetch(episodesURL);
   const result = await response.json();
-  console.log(result);
+  const formattedEpisode = result.map(item => {
+    return { 
+      name : item.name,
+      number : item.number,
+      season : item.season
+    }
+  })
+  return formattedEpisode;
 }
-
+//<li>Pilot (season 1, number 1)</li>
 /** Write a clear docstring for this function... */
 
 // function displayEpisodes(episodes) { }
